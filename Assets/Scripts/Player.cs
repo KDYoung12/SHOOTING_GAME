@@ -30,12 +30,45 @@ public class Player : MonoBehaviour
     public bool isBoomTime;
 
     public GameObject[] followers;
+    public bool isRespawnTime;
 
     Animator anim;
+    SpriteRenderer spriteRenderer;
+
     void Awake()
     {
         anim = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
+
+    private void OnEnable()
+    {
+        Unbeatable();
+        Invoke("Unbeatable", 3);
+    }
+
+    void Unbeatable()
+    {
+        isRespawnTime = !isRespawnTime;
+        if (isRespawnTime) // 무적 타임 이펙트 (투명)
+        {
+            spriteRenderer.color = new Color(1, 1, 1, 0.5f); 
+
+            for (int index = 0; index < followers.Length; index++)
+            {
+                followers[index].GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
+            }
+        }
+        else // 무적 타임 종료 (원래대로)
+        {
+            spriteRenderer.color = new Color(1, 1, 1, 1);
+            for (int index = 0; index < followers.Length; index++)
+            {
+                followers[index].GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+            }
+        }
+    }
+
     void Update()
     {
         Move();
@@ -237,12 +270,16 @@ public class Player : MonoBehaviour
         }
         else if (collision.gameObject.tag == "EnemyBullet" || collision.gameObject.tag == "Enemy")
         {
+            if (isRespawnTime)
+                return;
+
             if (isHit)
                 return;
 
             isHit = true;
             life--;
             gameManager.UpdateLifeIcon(life);
+            gameManager.CallExplosion(transform.position, "P");
 
             if (life == 0)
             {
@@ -254,7 +291,7 @@ public class Player : MonoBehaviour
             }
 
             gameObject.SetActive(false);
-            collision.gameObject.SetActive(false);
+
         }
 
         else if (collision.gameObject.tag == "Item")

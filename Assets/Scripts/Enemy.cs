@@ -20,6 +20,7 @@ public class Enemy : MonoBehaviour
     public GameObject itemBoom;
     public GameObject player;
     public ObjectManager objectManager;
+    public GameManager gameManager;
 
     SpriteRenderer spriteRenderer;
     Animator anim;
@@ -40,7 +41,7 @@ public class Enemy : MonoBehaviour
         switch (enemyName)
         { 
             case "B":
-                health = 3000;
+                health = 200;
                 Invoke("Stop", 2f);
                 break;
             case "L":
@@ -92,6 +93,7 @@ public class Enemy : MonoBehaviour
 
     void FireFoward()
     {
+        if (health <= 0) return;
         // #. Fire 4 Bullet Foward
         GameObject bulletR = objectManager.MakeObj("BulletBossA");
         bulletR.transform.position = transform.position + Vector3.right * 0.3f;
@@ -123,6 +125,7 @@ public class Enemy : MonoBehaviour
     }
     void FireShot()
     {
+        if (health <= 0) return;
         // #. Fire 5 Random Shotgun Bullet to Player
         for (int index = 0; index < 5; index++)
         {
@@ -147,6 +150,7 @@ public class Enemy : MonoBehaviour
     }
     void FireArc()
     {
+        if (health <= 0) return;
         // #. Fire Arc Continue Fire
 
         GameObject bullet = objectManager.MakeObj("BulletEnemyA");
@@ -168,6 +172,7 @@ public class Enemy : MonoBehaviour
     }
     void FireAround()
     {
+        if (health <= 0) return;
         // #. Fire Around
         // 발사할 총알의 개수
         int roundNumA = 50;
@@ -296,9 +301,18 @@ public class Enemy : MonoBehaviour
                 itemBoom.transform.position = transform.position;
             }
 
+            CancelInvoke();
             gameObject.SetActive(false);
+            
             // Quaternion.identity = 기본 회전값 0
-            transform.rotation = Quaternion.identity; 
+            transform.rotation = Quaternion.identity;
+            gameManager.CallExplosion(transform.position, enemyName);
+
+            // #. Boss Kill
+            if ( enemyName == "B")
+            {
+                gameManager.StageEnd();
+            }
         }
     }
 

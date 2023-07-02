@@ -18,6 +18,7 @@ public class ObjectManager : MonoBehaviour
     public GameObject bulletFollowerPrefab;
     public GameObject bulletBossAPrefab;
     public GameObject bulletBossBPrefab;
+    public GameObject explosionPrefab;
 
     // 풀링할 변수들 
     GameObject[] enemyL;
@@ -36,6 +37,7 @@ public class ObjectManager : MonoBehaviour
     GameObject[] bulletFollower;
     GameObject[] bulletBossA;
     GameObject[] bulletBossB;
+    GameObject[] explosion;
 
     GameObject[] targetPool;
     void Awake()
@@ -57,6 +59,7 @@ public class ObjectManager : MonoBehaviour
         bulletBossA = new GameObject[100];
         bulletBossB = new GameObject[1000];
         bulletFollower = new GameObject[100];
+        explosion = new GameObject[20];
 
         Generate();
     }
@@ -148,6 +151,12 @@ public class ObjectManager : MonoBehaviour
             bulletBossB[index] = Instantiate(bulletBossBPrefab);
             bulletBossB[index].SetActive(false);
         }
+
+        for (int index = 0; index < explosion.Length; index++)
+        {
+            explosion[index] = Instantiate(explosionPrefab);
+            explosion[index].SetActive(false);
+        }
     }
 
     // 풀 활용
@@ -196,6 +205,9 @@ public class ObjectManager : MonoBehaviour
                 break;
             case "BulletBossB":
                 targetPool = bulletBossB;
+                break;
+            case "Explosion":
+                targetPool = explosion;
                 break;
         }
         for (int index = 0; index < targetPool.Length; index++)
@@ -256,8 +268,23 @@ public class ObjectManager : MonoBehaviour
             case "BulletBossB":
                 targetPool = bulletBossB;
                 break;
+            case "Explosion":
+                targetPool = explosion;
+                break;
         }
 
         return targetPool;
+    }
+
+    public void DeleteAllObj(string type)
+    {
+        if (type == "Boss")
+        {
+            for (int index = 0; index < bulletBossA.Length; index++)
+                bulletBossA[index].SetActive(false);
+
+            for (int index = 0; index < bulletBossB.Length; index++)
+                bulletBossA[index].SetActive(false);
+        }
     }
 }

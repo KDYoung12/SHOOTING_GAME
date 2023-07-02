@@ -7,6 +7,12 @@ using System.IO;
 
 public class GameManager : MonoBehaviour
 {
+    public int stage;
+    public Animator stageAnim;
+    public Animator clearAnim;
+    public Animator fadeAnim;
+    public Transform playerPos;
+
     public string[] enemyObjs;
     public Transform[] spawnPoints;
 
@@ -30,7 +36,46 @@ public class GameManager : MonoBehaviour
     {
         spawnList = new List<Spawn>();
         enemyObjs = new string[] { "EnemyS", "EnemyM", "EnemyL" , "EnemyB"};
+        StageStart();
+    }
+
+    public void StageStart()
+    {
+        // #. Stage UI Load
+        stageAnim.SetTrigger("On");
+        stageAnim.GetComponent<Text>().text = "Stage " + stage + "\nStart";
+        clearAnim.GetComponent<Text>().text = "Stage " + stage + "\nClear !";
+
+        // #. Enemy Spawn File Read
         ReadSpawnFile();
+
+        // #. Fade In
+        fadeAnim.SetTrigger("In");
+    }
+
+    public void StageEnd()
+    {
+        // #. Clear UI Load
+        clearAnim.SetTrigger("On");
+
+        // #. Fade Out
+        fadeAnim.SetTrigger("Out");
+
+        // #. Player Reposition
+        player.transform.position = playerPos.position;
+
+        // #. Stage Increament
+        stage++;
+
+        Debug.Log(stage);
+
+        if (stage > 2)
+        {
+            Debug.Log("게임 종료");
+            Invoke("gameOver", 6f);
+        }
+        else
+            Invoke("StageStart", 5f);
     }
 
     void ReadSpawnFile()
@@ -43,7 +88,7 @@ public class GameManager : MonoBehaviour
 
         // #2. 리스폰 파일 읽기
         // TextAsset : 텍스트 파일 에셋 클래스
-        TextAsset textFile = Resources.Load("Stage 0") as TextAsset;
+        TextAsset textFile = Resources.Load("Stage " + stage.ToString()) as TextAsset;
         // StringReader : 파일 내의 문자열 데이터 읽기 클래스
         StringReader stringReader = new StringReader(textFile.text);
 
@@ -105,8 +150,10 @@ public class GameManager : MonoBehaviour
                 enemyIndex = 3;
                 break;
         }
+
         // Enemy의 개수 3가지
         int enemyPoint = spawnList[spawnIndex].point;
+
         // Enemy 생성
         GameObject enemy = objectManager.MakeObj(enemyObjs[enemyIndex]);
         enemy.transform.position = spawnPoints[enemyPoint].position;
@@ -114,6 +161,7 @@ public class GameManager : MonoBehaviour
         Rigidbody2D rigid = enemy.GetComponent<Rigidbody2D>();
         Enemy enemyLogic = enemy.GetComponent<Enemy>();
         enemyLogic.player = player;
+        enemyLogic.gameManager = this;
         enemyLogic.objectManager = objectManager;
         if(enemyPoint == 5 || enemyPoint == 6)
         {
@@ -188,6 +236,16 @@ public class GameManager : MonoBehaviour
         Player playerLogic = player.GetComponent<Player>();
         playerLogic.isHit = false;
     }
+
+    public void CallExplosion(Vector3 position, string type)
+    {
+        GameObject explosion = objectManager.MakeObj("Explosion");
+        Explosion explosionLogic = explosion.GetComponent<Explosion>();
+
+        explosion.transform.position = position;
+        explosionLogic.StartExplosion(type);
+    }
+
     public void gameOver()
     {
         gameOverSet.SetActive(true);
